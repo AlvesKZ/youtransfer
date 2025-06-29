@@ -3,15 +3,15 @@ package com.alves.youtransfer.models.user;
 import jakarta.persistence.*;
 
 @Entity
+@Table(name = "user")
 public class User {
 
-    @Column
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     private  String name;
-
-    @Column(unique = true)
     private String email;
-
-    @Column
     private String password;
 
     @Enumerated(EnumType.STRING)

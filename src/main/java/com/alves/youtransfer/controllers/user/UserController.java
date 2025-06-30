@@ -2,13 +2,7 @@ package com.alves.youtransfer.controllers.user;
 
 import com.alves.youtransfer.models.user.User;
 import com.alves.youtransfer.services.user.UserService;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
-import org.apache.coyote.Response;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -27,9 +21,35 @@ public class UserController {
         return userService.getAll();
     }
 
+    @GetMapping("/{id}")
+    public User getById(@PathVariable Long id) {
+        return userService.getById(id);
+    }
+
+    @GetMapping("/email")
+    public User getByEmail(@RequestParam String email) {
+        return userService.getByEmail(email);
+    }
+
     @PostMapping
     public User create(@RequestBody User user) {
         return userService.create(user);
+    }
+
+    @PatchMapping("/name")
+    public void changeName(@RequestBody User user) {
+        userService.changeName(user.getId(), user.getName());
+    }
+
+    @PatchMapping("/password")
+    public void changePassword(@RequestBody User user) {
+        userService.changePassword(user.getId(), user.getPassword());
+    }
+
+    @DeleteMapping
+    public void delete(@RequestBody User user) {
+        Long id = user.getId();
+        userService.delete(id);
     }
 }
 

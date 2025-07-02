@@ -5,6 +5,7 @@ import com.alves.youtransfer.models.user.User;
 
 import com.alves.youtransfer.services.user.TokenBlacklistService;
 import com.alves.youtransfer.utils.JwtUtil;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -46,6 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
 
+
             try {
                 String email = jwtUtil.extractEmail(token);
                 if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -61,9 +63,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         SecurityContextHolder.getContext().setAuthentication(authToken);
                     }
                 }
-            } catch (Exception e) {
-                System.out.println("Authentication failed: " + e.getMessage());
+            } catch (JwtException | IllegalArgumentException e) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json");
+                response.getWriter().write("{\"error\": \"Invalid or expired token\"}");
+                return;
             }
+
         }
 
         filterChain.doFilter(request, response);

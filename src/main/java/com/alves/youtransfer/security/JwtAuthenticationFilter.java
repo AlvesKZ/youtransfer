@@ -3,6 +3,7 @@ package com.alves.youtransfer.security;
 import com.alves.youtransfer.services.user.AuthService;
 import com.alves.youtransfer.models.user.User;
 
+import com.alves.youtransfer.services.user.TokenBlacklistService;
 import com.alves.youtransfer.utils.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -23,10 +24,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final AuthService authService;
+    private final TokenBlacklistService tokenBlacklistService;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil, AuthService authService) {
+    public JwtAuthenticationFilter(JwtUtil jwtUtil, AuthService authService, TokenBlacklistService tokenBlacklistService) {
         this.jwtUtil = jwtUtil;
         this.authService = authService;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
 
     @Override
@@ -37,6 +40,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
             String token = header.substring(7);
+
+            if (tokenBlacklistService.isTokenBlacklisted(token)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
 
             try {
                 String email = jwtUtil.extractEmail(token);

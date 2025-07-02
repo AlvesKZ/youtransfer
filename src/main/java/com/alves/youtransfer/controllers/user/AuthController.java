@@ -4,8 +4,10 @@ import com.alves.youtransfer.dtos.LoginRequest;
 import com.alves.youtransfer.dtos.LoginResponse;
 import com.alves.youtransfer.models.user.User;
 import com.alves.youtransfer.services.user.AuthService;
+import com.alves.youtransfer.services.user.TokenBlacklistService;
 import com.alves.youtransfer.utils.JwtUtil;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,10 +17,12 @@ import java.util.List;
 public class AuthController {
 
     private final AuthService authService;
+    private final TokenBlacklistService tokenBlacklistService;
     private final JwtUtil jwtUtil;
 
-    public AuthController(AuthService authService, JwtUtil jwtUtil) {
+    public AuthController(AuthService authService, JwtUtil jwtUtil, TokenBlacklistService tokenBlacklistService) {
         this.authService = authService;
+        this.tokenBlacklistService = tokenBlacklistService;
         this.jwtUtil = jwtUtil;
     }
 
@@ -43,5 +47,21 @@ public class AuthController {
         return ResponseEntity.ok(token);
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<User> getAuthenticatedUser() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        user.setPassword(null);
+        return ResponseEntity.ok(user);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            long expiration = jwtUtil.getExpirationMillis(token);
+            tokenBlacklistService.blacklistToken(token, expiration);
+        }
+        return ResponseEntity.ok("Logout successful");
+    }
 }
 

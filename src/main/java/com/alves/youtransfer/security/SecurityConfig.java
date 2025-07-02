@@ -1,6 +1,7 @@
 package com.alves.youtransfer.security;
 
 import com.alves.youtransfer.services.user.AuthService;
+import com.alves.youtransfer.services.user.TokenBlacklistService;
 import com.alves.youtransfer.utils.JwtUtil;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,15 +18,17 @@ public class SecurityConfig {
 
     private final JwtUtil jwtUtil;
     private final AuthService authService;
+    private final TokenBlacklistService tokenBlacklistService;
 
-    public SecurityConfig(JwtUtil jwtUtil, AuthService authService) {
+    public SecurityConfig(JwtUtil jwtUtil, AuthService authService, TokenBlacklistService tokenBlacklistService) {
         this.jwtUtil = jwtUtil;
         this.authService = authService;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtUtil, authService);
+        return new JwtAuthenticationFilter(jwtUtil, authService, tokenBlacklistService);
     }
 
     @Bean
